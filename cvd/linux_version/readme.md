@@ -7,4 +7,4 @@ Should also load into org-mode as a header via:
 #+END_SRC
 ```
 
-![org screenie](/cvd_linux_screenie.png)
+![](/cvd/linux_version/cvd_linux_screenie.png?raw=true)
