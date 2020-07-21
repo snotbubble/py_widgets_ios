@@ -163,5 +163,6 @@ def btap() :
 cases = btap()
 if len(cases[0]) == 0 :
 	print("\n  No cases recorded since " + str(ago) + " days ago.\n  This may be due to delays in providing data.\n  Data sourced from:\n  https://data.nsw.gov.au/data/dataset/covid-19-cases-by-location")
-print(cases[1] + "\n\n" + cases[0])
+else:
+	print(cases[1] + "\n\n" + cases[0])
 
