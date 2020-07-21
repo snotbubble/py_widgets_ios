@@ -11,5 +11,5 @@ postcodes sourced form Soon Van 'randomecho' : https://gist.github.com/randomech
 
 ... who got it from blog.datalicious.com/free-download-all-australian-postcodes-geocod (now a 404 site)
 
-... so this 3rd-hand data may contains errors, use at your own risk
+so this 3rd-hand data may contain errors, use at your own risk
 
