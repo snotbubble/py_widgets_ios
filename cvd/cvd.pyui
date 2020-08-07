@@ -1,0 +1,137 @@
+[
+  {
+    "nodes" : [
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{124, 15}, {250, 32}}",
+        "class" : "SegmentedControl",
+        "attributes" : {
+          "action" : "retap",
+          "flex" : "WLB",
+          "segments" : "distance|date|postcode|burb",
+          "frame" : "{{119, 283}, {120, 29}}",
+          "uuid" : "69F7279D-8D52-4FB4-BEE6-79B53D750243",
+          "class" : "SegmentedControl",
+          "name" : "sortby"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{59, 15}, {57, 32}}",
+        "class" : "Label",
+        "attributes" : {
+          "name" : "dayslabel",
+          "frame" : "{{104, 282}, {150, 32}}",
+          "uuid" : "2BEF775A-DC65-4015-B1CC-FB99F509391A",
+          "class" : "Label",
+          "alignment" : "center",
+          "text" : "days",
+          "font_size" : 16,
+          "font_name" : "Menlo-Regular"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{6, 15}, {45, 32}}",
+        "class" : "TextField",
+        "attributes" : {
+          "name" : "daysago",
+          "frame" : "{{79, 282}, {200, 32}}",
+          "spellchecking_type" : "no",
+          "class" : "TextField",
+          "uuid" : "82C29B9A-4986-4B5C-9CD9-721BAB20C6C8",
+          "alignment" : "center",
+          "text" : "5",
+          "autocorrection_type" : "no",
+          "font_size" : 17,
+          "font_name" : "Menlo-Bold"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{6, 492}, {255, 88}}",
+        "class" : "Label",
+        "attributes" : {
+          "flex" : "RT",
+          "font_size" : 16,
+          "text_color" : "RGBA(0.222222,0.492754,1.000000,1.000000)",
+          "frame" : "{{104, 282}, {150, 32}}",
+          "uuid" : "70EC03B1-4573-42A2-B225-3A6A1B8B307C",
+          "class" : "Label",
+          "alignment" : "center",
+          "text" : "no data",
+          "name" : "resultslabel",
+          "font_name" : "MuktaMahee-Bold"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{269, 492}, {105, 88}}",
+        "class" : "Button",
+        "attributes" : {
+          "uuid" : "A75644B7-0812-4283-93D3-E85D2BD39C61",
+          "font_size" : 14,
+          "corner_radius" : 0,
+          "frame" : "{{139, 282}, {80, 32}}",
+          "tint_color" : "RGBA(1.000000,0.055556,0.055556,1.000000)",
+          "border_width" : 1,
+          "border_color" : "RGBA(1.000000,0.888889,0.888889,1.000000)",
+          "title" : "refresh",
+          "action" : "btap",
+          "font_bold" : true,
+          "class" : "Button",
+          "name" : "doit",
+          "flex" : "LT"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{6, 55}, {368, 429}}",
+        "class" : "TextView",
+        "attributes" : {
+          "uuid" : "6F605B44-52C9-4A78-BD8C-3B11BC3C56EA",
+          "font_size" : 11,
+          "background_color" : "RGBA(0.103486,0.229469,0.310458,1.000000)",
+          "frame" : "{{79, 198}, {200, 200}}",
+          "editable" : false,
+          "alignment" : "left",
+          "autocorrection_type" : "no",
+          "text_color" : "RGBA(0.333333,0.739130,1.000000,1.000000)",
+          "font_name" : "Menlo-Bold",
+          "spellchecking_type" : "no",
+          "class" : "TextView",
+          "name" : "thetext",
+          "flex" : "WH"
+        },
+        "selected" : true
+      }
+    ],
+    "frame" : "{{0, 0}, {380, 600}}",
+    "class" : "View",
+    "attributes" : {
+      "enabled" : true,
+      "background_color" : "RGBA(1.000000,1.000000,1.000000,1.000000)",
+      "tint_color" : "RGBA(0.000000,0.478000,1.000000,1.000000)",
+      "border_color" : "RGBA(0.000000,0.000000,0.000000,1.000000)",
+      "flex" : ""
+    },
+    "selected" : false
+  }
+]

@@ -21,19 +21,24 @@ import location
 
 # getdist function posted by gwaramadze & fixed by Michael0x2a on stackexchange: https://stackoverflow.com/questions/19412462/getting-distance-between-two-points-based-on-latitude-longitude
 # who got it from Andrew Hedges: # https://andrew.hedges.name/experiments/haversine/
-# who got it from Bob Chamberlain (site unknown)	
+# who got it from Bob Chamberlain (site unknown)
+
+# distances rounded to 0.5 km for table grouping
 
 cdr = os.path.split(os.path.realpath('cvd.py'))[0]
 rcsv = 'https://data.nsw.gov.au/data/dataset/97ea2424-abaf-4f3e-a9f2-b5c883f42b6a/resource/2776dbb8-f807-4fb2-b1ed-184a6fc2c8aa/download/covid-19-cases-by-notification-date-location-and-likely-source-of-infection.csv'
 pcod = cdr + "/nswpostcodes.csv"
 mypos = (-33.689990, 150.546212)
-ago = 2 # number of prior days to check for cases
+ago = 5 # number of prior days to check for cases
 
 location.start_updates()
 loc = location.get_location()
 location.stop_updates()
 mypos = (loc['latitude'],loc['longitude'])
 #print("mypos = " + str(mypos))
+
+cases = []
+oldago = 1
 
 def getdist(la, lb, oa, ob) :
 
@@ -52,6 +57,7 @@ def getdist(la, lb, oa, ob) :
 	c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
 	distance = R * c
+	distance = round(distance * 2.0) / 2.0
 	return(distance)
 
 def orgtab(s) :
@@ -65,7 +71,7 @@ def orgtab(s) :
 		p = i.split('|')
 		c = 0
 		for s in p :
-			if s.strip() != "" :
+			if s != "" :
 				sl = len(s)
 				if len(mxl) <= c :
 					mxl.append(sl)
@@ -79,10 +85,11 @@ def orgtab(s) :
 		c = 0
 		row = ""
 		for s in p :
-			if s.strip() != "" :
+			if s != "" :
 				q = s.ljust(mxl[c]," ")
-				if s[0] == "-" :
-					q = s.ljust(mxl[c],"-")
+				if s.strip() != "" :
+					if s[0] == "-" :
+						q = s.ljust(mxl[c],"-")
 				row = row + "|" + q
 				c = c + 1
 		if row.strip() != "" : row = row + "|\n"
@@ -90,7 +97,65 @@ def orgtab(s) :
 	lines = 0	
 	return tbl
 
-def btap() :
+def render(s,u,r) :
+	#print("len(cases) = " + str(len(cases)))
+	if len(cases) > 0 :
+# write case count
+		
+		c = str(len(cases)) + " new cases"
+		
+# sort cases 		
+		
+		#cases.sort(key=lambda x: x[r])
+			
+		values = set(map(lambda x:x[r], cases))
+		values = sorted(values)
+		#print("group vals : " + str(values))
+		cg = [[y for y in cases if y[r]==x] for x in values]
+		#print("grouped list : " + str(newlist))
+			
+# org-style table header
+		
+		o =     "| DIST | DATE | POST | SUBURB |\n"
+		o = o + "|------|------|------|--------|\n"
+		
+		for g in cg :
+			gl = len(g)
+			for i in g :
+				o = o + "| " + "{0:.2f}".format(i[0]) + "km | " + i[1] + " | " + i[2] + " | " + i[3] + ' |\n'
+			o = o + "|------|------|------|--------|\n"
+			o = o + "|      |      |      | = " + str(len(g)) + "|\n"
+			o = o + "|------|------|------|--------|\n"
+		
+# tidy-up the table.
+# inefficient doing this after the fact, but testing a general-purpose text-editing function for later
+		
+		o = orgtab(o)
+		
+# update ui
+		
+		s.text = o
+		u.text = c
+	else :
+		s.text = ""
+		u.text = "no new cases"
+
+
+def btap(sender) :
+	'@type sender: ui.Button'
+	s = sender.superview['thetext']
+	u = sender.superview['resultslabel']
+	r = sender.superview['sortby'].selected_index
+	sago = sender.superview['daysago'].text
+
+	try:
+		ago = int(sago)
+		oldago = 1
+	except:
+		ago = 1
+		sender.superview['daysago'].text = "1"
+		oldago = 1
+	#print("days to check : " + str(ago))
 	o = ""
 	c = ""
 	
@@ -148,89 +213,48 @@ def btap() :
 					tu = datetime.datetime.strftime(xo,'%y%m%d')
 					cs = [itsdist,tu,parts[1],parts[6]]
 					latest.append(cs)
+					#print("appending case : " + str(cs))
 				
+	cases.clear()
+	for j in latest : cases.append(j)
+	latest = 0
 	csv = 0
 	
 # if there are any cases, format and output information
-	
-	if len(latest) > 0 :
-		
-# write case count
-		
-		c = str(len(latest)) + " new cases"
-		
-# sort cases by distance	
-		
-		latest.sort(key=lambda x: x[0])
-		
-# org-style table header
-		
-		o =     "| DIST | DATE | POST | SUBURB |\n"
-		o = o + "|------|------|------|--------|\n"
-		
-# write table
-		
-		for i in latest :
-			o = o + "| " + "{0:.2f}".format(i[0]) + "km | " + i[1] + " | " + i[2] + " | " + i[3] + ' |\n'
-		latest = 0
-		
-# tidy-up the table.
-# inefficient doing this after the fact, but testing a general-purpose text-editing function for later
-		
-		o = orgtab(o)
-		
-# update ui
-		
-		s.text = o
-		u.text = c
+	#print("len(cases) in btap is : " + str(len(cases)))
+	if len(cases) > 0 :
+		render(s,u,r)
 	else :
 		s.text = ""
 		u.text = "no new cases"
 
+def retap(sender) :
+	'@type sender: ui.SegmentedControl'
+	s = sender.superview['thetext']
+	u = sender.superview['resultslabel']
+	r = sender.selected_index
+	sago = sender.superview['daysago'].text
+	try:
+		ago = int(sago)
+	except:
+		ago = 1
+		sender.superview['daysago'].text = "1"
+	if ago == oldago :
+		if len(latest) > 0 :
+			render(s,u,r)
+		else :
+			s.text = ""
+			u.text = "no new cases"
+	else:
+		btap(sender)
+
 # start pythonista UI....
 
-# textveiew widget height, width. height used for button and label
-	
-wh = 128
-ww = 280	
-
-# text widget to show results
-
-s = ui.TextView(frame=(0, 0, ww,wh),font=("Menlo",8),alignment=ui.ALIGN_LEFT)
-s.background_color = (0.2,0.3,0.4, 1.0)
-s.text_color = (0.8,0.9,1.0,1.0)
-
-# container for the above to force scrolling
-
-r = ui.ScrollView(bounces=True)
-r.touch_enabled = True
-r.frame = (0,0,ww,wh)
-r.add_subview(s)
-
-# label widget to show additional info
-
-u = ui.Label(font=("Menlo",12),alignment=ui.ALIGN_CENTER)
-u.frame = (ww,wh*0.5,wh,wh*0.5)
-u.background_color = (0.1,0.2,0.3,1.0)
-u.text_color = (1.0,0.7,0.7,1.0)
-
-# button widget to fetch results
-
-b = ui.Button(font=("Menlo",14),alignment=ui.ALIGN_RIGHT)
-b.frame = (ww, 0, wh, wh*0.5)
-b.tint_color = (1.0,0.0,0.0,1.0)
-b.title = "Refresh"
-b.action = btap()
-
 # the main ui container
-
-view = ui.View()                                      
-view.name = 'cvd'                                    
-view.background_color = '#324958'
-
-# put it all together
-
-view.add_subview(r)
-view.add_subview(b)
-view.add_subview(u)                 
-appex.set_widget_view(view)
+sv = ui.load_view("cvd.pyui")
+scx = ui.get_screen_size().x
+if scx > 380 :
+	sv.frame = (0,0,400,600)
+	sv.present('sheet')
+else:
+	sv.present('fullscreen')
