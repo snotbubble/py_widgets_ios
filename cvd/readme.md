@@ -23,4 +23,4 @@
 - run cvd.py
 
 # screenie
-![](/cvd/cvd_screenie.jpg?raw=true)
+![](/cvd/cvd_screenie.jpg=520x800)
