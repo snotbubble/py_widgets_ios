@@ -7,10 +7,7 @@ import location
 
 # pythonista widget to show recent covid cases during the 2nd wave...
 # written by c.p.brown using sources acknowledged below.
-# last updated July 23 2020 @ local pythonista USER dir, not APP dir.
-# copy to this script & nswpostcodes.csv to the invisible pythonista APP dir to use it.
-# this has to be done from within pythonista.
-# file management and kb/mouse use on IOS is fucking retarded/broken, so goodluck if you want to mess-arount with it.
+# last updated August 2020
 
 # covid case data sourced from:
 # https://data.nsw.gov.au/data/dataset/covid-19-cases-by-location
