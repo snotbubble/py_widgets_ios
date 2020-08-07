@@ -2,7 +2,11 @@ import urllib.request
 import datetime
 import os
 from math import sin, cos, sqrt, atan2, radians
-#import appex, ui
+import sys
+
+# pythonista widget to show recent covid cases during the 2nd wave...
+# written by c.p.brown using sources acknowledged below.
+# last updated August 2020
 
 # covid case data sourced from:
 # https://data.nsw.gov.au/data/dataset/covid-19-cases-by-location
@@ -11,11 +15,19 @@ from math import sin, cos, sqrt, atan2, radians
 # ... who took and cribbed from blog.datalicious.com/free-download-all-australian-postcodes-geocod (now a 404 site)
 # so this 3rd(or more)-hand data probably contains errors, use at your own risk
 
+# getdist function posted by gwaramadze & fixed by Michael0x2a on stackexchange: https://stackoverflow.com/questions/19412462/getting-distance-between-two-points-based-on-latitude-longitude
+# who got it from Andrew Hedges: # https://andrew.hedges.name/experiments/haversine/
+# who got it from Bob Chamberlain (site unknown)
+
+# distances rounded to 0.5 km for table grouping
+
 cdr = os.path.split(os.path.realpath('cvd_linux.py'))[0]
 rcsv = 'https://data.nsw.gov.au/data/dataset/97ea2424-abaf-4f3e-a9f2-b5c883f42b6a/resource/2776dbb8-f807-4fb2-b1ed-184a6fc2c8aa/download/covid-19-cases-by-notification-date-location-and-likely-source-of-infection.csv'
 pcod = cdr + "/nswpostcodes.csv"
 mypos = (-33.689990, 150.546212)
 ago = 2 # number of prior days to check for cases
+
+cases = []
 
 def getdist(la, lb, oa, ob) :
 	# function posted by gwaramadze & fixed by Michael0x2a on stackexchange, referring to Andrew Hedges, who referred to Bob Chamberlain
@@ -50,7 +62,7 @@ def orgtab(s) :
 		p = i.split('|')
 		c = 0
 		for s in p :
-			if s.strip() != "" :
+			if s != "" :
 				sl = len(s)
 				if len(mxl) <= c :
 					mxl.append(sl)
@@ -62,37 +74,92 @@ def orgtab(s) :
 	for i in lines :
 		p = i.split('|')
 		c = 0
-		row = ""
+		row = "|"
+		if len(i.strip()) == 0 : row = ""
 		for s in p :
-			if s.strip() != "" :
+			if s != "" :
 				q = s.ljust(mxl[c]," ")
+				if s.strip() != "" :
+					if s[0] == "-" :
+						q = s.ljust(mxl[c],"-")
 				if s[0] == "-" :
-					q = s.ljust(mxl[c],"-")
-				row = row + "|" + q
+					if c < len(p) - 3 :
+						row = row + q + "+"
+					else :
+						row = row + q + "|"
+				else :
+					row = row + q + "|"
 				c = c + 1
-		if row.strip() != "" : row = row + "|\n"
+		if row.strip() != "" : row = row + "\n"
 		tbl = tbl + row
+	lines = 0	
 	return tbl
 
+def render(s,u,r) :
+	if len(cases) > 0 :
+		
+# write case count
+		
+		c = str(len(cases)) + " new cases"
+		
+# sort and group cases using column key (r)
+		
+		values = set(map(lambda x:x[r], cases))
+		if r == 1 :
+			values = sorted(values, reverse=True)
+		else :
+			values = sorted(values)
+		cg = [[y for y in cases if y[r]==x] for x in values]
+		
+# org-style table header
+		
+		o =     "| DIST | DATE | POST | SUBURB |\n"
+		o = o + "|------|------|------|--------|\n"
+		
+		for g in cg :
+			gl = len(g)
+			for i in g :
+				o = o + "| " + "{0:.2f}".format(i[0]) + "km | " + i[1] + " | " + i[2] + " | " + i[3] + ' |\n'
+			o = o + "|------|------|------|--------|\n"
+			o = o + "|      |      |      | = " + str(len(g)) + "|\n"
+			o = o + "|------|------|------|--------|\n"
+		
+# tidy-up the table.
+# inefficient doing this after the fact, but testing a general-purpose text-editing function for later
+		
+		o = orgtab(o)
+		
+# update ui
+		
+		return[o,c]
+		
+	else :
+		o = ""
+		c = "no new cases"
+		return[o,c]
+
 def btap() :
+	r = int(sys.argv[2])
+	ago = int(sys.argv[1])
+	
 	o = ""
 	c = ""
 	
-# get the covid data from csv 	
-
+# get the covid data from csv 
+	
 	ug = urllib.request.urlopen(rcsv)
 	csv = ug.read().splitlines()[1:]
 	ug = 0
-
-# extract date info	
-
+	
+# extract date info
+	
 	td = datetime.date.today()
 	tx = td.toordinal()
 	tw = td.strftime('%a')
 	tt = td.day
-
-# get postcode locations from csv	
-
+	
+# get postcode locations from csv
+	
 	f = open(pcod,'r')
 	pcsv = f.read().splitlines()
 	f.close()
@@ -105,10 +172,10 @@ def btap() :
 			pcc.append(int(seg[0]))
 			ploc = (float(seg[2]),float(seg[3]))
 			loc.append(ploc)
-
-	pcsv = 0		
+	
+	pcsv = 0
 	latest = []
-
+	
 # gather and format covid cases, filtered by age in days
 	
 	for l in csv :
@@ -116,9 +183,10 @@ def btap() :
 		parts = l.split(',')
 		if parts[1].strip() != '' :
 			dt = parts[0]
-			xx = datetime.datetime.strptime(dt,'%Y-%m-%d').date().toordinal()
+			xo = datetime.datetime.strptime(dt,'%Y-%m-%d').date()
+			xx = xo.toordinal()
 			if tx - xx <= ago :
-# match postcode to location data				
+# match postcode to location data
 				try:
 					lidx = pcc.index(int(parts[1]))
 				except:
@@ -127,42 +195,27 @@ def btap() :
 # have a location, get its distance, append to returned data
 					itspos = loc[lidx]
 					itsdist = getdist(mypos[0],itspos[0],mypos[1],itspos[1])
-					cs = [itsdist,dt,parts[1],parts[6]]
+# compact the date
+					tu = datetime.datetime.strftime(xo,'%y%m%d')
+					cs = [itsdist,tu,parts[1],parts[6]]
 					latest.append(cs)
-				
-	csv = 0
-
-# write case count
-	
-	c = "** " + str(len(latest)) + " new NSW covid cases since " + str(ago) + " days ago.\n"
-	c = c + "Provision of data may be delayed by several days,\nno new data is provided during weekends.\n"
-	c = c + "Data sourced from: [[https://data.nsw.gov.au/data/dataset/covid-19-cases-by-location][here]]"
-	
-# sort cases by distance	
-	
-	latest.sort(key=lambda x: x[0])
-
-# org-style table header
-	
-	o =     "| DIST | DATE | POST | SUBURB |\n"
-	o = o + "|------|------|------|--------|\n"
-	
-# write table
-	
-	for i in latest :
-		o = o + "| " + "{0:.2f}".format(i[0]) + "km | " + i[1] + " | " + i[2] + " | " + i[3] + ' |\n'
+	cases.clear()
+	for j in latest : cases.append(j)
 	latest = 0
+	csv = 0
 	
-# tidy-up the table.
-# inefficient doing this after the fact, but testing a general-purpose text-editing function for later
+# if there are any cases, format and output information
+	
+	if len(cases) > 0 :
+		return render(o,c,r)
+	else :
+		o = ""
+		c = "no new cases"
+		return[o,c]
 
-	o = orgtab(o)
-	
-	return [o,c]
-	
-cases = btap()
-if len(cases[0]) == 0 :
+thelist = btap()
+if len(thelist[0]) == 0 :
 	print("\n  No cases recorded since " + str(ago) + " days ago.\n  This may be due to delays in providing data.\n  Data sourced from:\n  https://data.nsw.gov.au/data/dataset/covid-19-cases-by-location")
 else:
-	print(cases[1] + "\n\n" + cases[0])
+	print(thelist[1] + "\n\n" + thelist[0])
 
